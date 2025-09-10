@@ -68,3 +68,15 @@ Detailed step-by-step instructions for setting up the project are provided in `R
 - `*.v`: Verilog source files for various functional modules
 - `*.xdc`: Xilinx Design Constraints files
 - `mmcm_drp_func.h`: Header file with MMCM DRP functions
+
+## 电极分组功能
+
+本设计支持将电极分为10组，每组最多包含8个电极。每组电极在每个SPI操作周期中可以分别定义其作用（收集电位信号或发送刺激），并且电极的作用可以根据当前游戏参数动态变化。
+
+相关文件：
+- `enhanced_bypass_controller.v`: 增强的旁路控制器，支持电极分组功能
+- `data_input_module.v`: 数据输入模块，支持按组处理电极数据
+- `filter_processing_module.v`: 滤波处理模块，支持按组处理电极信号
+- `data_output_module.v`: 数据输出模块，支持生成电极分组配置指令
+- `electrode_grouping_design.md`: 电极分组设计方案
+- `electrode_grouping_usage.md`: 电极分组功能使用说明

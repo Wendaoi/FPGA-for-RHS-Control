@@ -165,40 +165,41 @@ module main
 	 reg MOSI_A1, MOSI_B1, MOSI_C1, MOSI_D1;
 	 reg MOSI_A2, MOSI_B2, MOSI_C2, MOSI_D2;
 	 
-	 assign CS_b_A = CS_b;
-	 assign SCLK_A = SCLK;
-	 assign MOSI1_A = MOSI_A1;
-	 assign MOSI2_A = MOSI_A2;
+	 // SPI resource sharing between main controller and bypass controller
+	 assign CS_b_A = bypass_enable ? bypass_cs_n : CS_b;
+	 assign SCLK_A = bypass_enable ? bypass_sclk : SCLK;
+	 assign MOSI1_A = bypass_enable ? bypass_mosi : MOSI_A1;
+	 assign MOSI2_A = bypass_enable ? 1'b0 : MOSI_A2;
 	 
 	 assign CS_b_B = 0;
 	 assign SCLK_B = 0;
 	 assign MOSI1_B = 0;
 	 assign MOSI2_B = 0;
 
-	 assign CS_b_C = CS_b;
-	 assign SCLK_C = SCLK;
-	 assign MOSI1_C = MOSI_B1;
-	 assign MOSI2_C = MOSI_B2;
+	 assign CS_b_C = bypass_enable ? bypass_cs_n : CS_b;
+	 assign SCLK_C = bypass_enable ? bypass_sclk : SCLK;
+	 assign MOSI1_C = bypass_enable ? bypass_mosi : MOSI_B1;
+	 assign MOSI2_C = bypass_enable ? 1'b0 : MOSI_B2;
 
 	 assign CS_b_D = 0;
 	 assign SCLK_D = 0;
 	 assign MOSI1_D = 0;
 	 assign MOSI2_D = 0;
 
-	 assign CS_b_E = CS_b;
-	 assign SCLK_E = SCLK;
-	 assign MOSI1_E = MOSI_C1;
-	 assign MOSI2_E = MOSI_C2;
+	 assign CS_b_E = bypass_enable ? bypass_cs_n : CS_b;
+	 assign SCLK_E = bypass_enable ? bypass_sclk : SCLK;
+	 assign MOSI1_E = bypass_enable ? bypass_mosi : MOSI_C1;
+	 assign MOSI2_E = bypass_enable ? 1'b0 : MOSI_C2;
 
 	 assign CS_b_F = 0;
 	 assign SCLK_F = 0;
 	 assign MOSI1_F = 0;
 	 assign MOSI2_F = 0;
 
-	 assign CS_b_G = CS_b;
-	 assign SCLK_G = SCLK;
-	 assign MOSI1_G = MOSI_D1;
-	 assign MOSI2_G = MOSI_D2;
+	 assign CS_b_G = bypass_enable ? bypass_cs_n : CS_b;
+	 assign SCLK_G = bypass_enable ? bypass_sclk : SCLK;
+	 assign MOSI1_G = bypass_enable ? bypass_mosi : MOSI_D1;
+	 assign MOSI2_G = bypass_enable ? 1'b0 : MOSI_D2;
 
 	 assign CS_b_H = 0;
 	 assign SCLK_H = 0;
@@ -212,17 +213,18 @@ module main
 	wire        MISO_C1, MISO_C2;
 	wire        MISO_D1, MISO_D2;
 	
-    assign MISO_A1 = MISO1_A;
-    assign MISO_A2 = MISO2_A;
+    // SPI resource sharing for MISO signals
+    assign MISO_A1 = bypass_enable ? bypass_miso_A1 : MISO1_A;
+    assign MISO_A2 = bypass_enable ? 1'b0 : MISO2_A;
 
-    assign MISO_B1 = MISO1_C;
-    assign MISO_B2 = MISO2_C;
+    assign MISO_B1 = bypass_enable ? bypass_miso_A1 : MISO1_C;
+    assign MISO_B2 = bypass_enable ? 1'b0 : MISO2_C;
 
-    assign MISO_C1 = MISO1_E;
-    assign MISO_C2 = MISO2_E;
+    assign MISO_C1 = bypass_enable ? bypass_miso_A1 : MISO1_E;
+    assign MISO_C2 = bypass_enable ? 1'b0 : MISO2_E;
 
-    assign MISO_D1 = MISO1_G;
-    assign MISO_D2 = MISO2_G;
+    assign MISO_D1 = bypass_enable ? bypass_miso_A1 : MISO1_G;
+    assign MISO_D2 = bypass_enable ? 1'b0 : MISO2_G;
 	
 	// TESTING
     //reg [7:0] main_led = 8'b0000_0000;
@@ -390,6 +392,27 @@ module main
 	wire [4:0] prog_module;
 	wire [15:0] prog_word;
     
+    // Bypass controller signals
+    wire bypass_enable;
+    wire bypass_command;
+    wire bypass_auto_cs;
+    wire [31:0] bypass_command_data;
+    wire bypass_command_valid;
+    wire [31:0] bypass_response_data;
+    wire bypass_response_valid;
+    wire bypass_busy;
+    wire bypass_cs_n;
+    wire bypass_sclk;
+    wire bypass_mosi;
+    wire bypass_miso_A1;
+    wire bypass_miso_A2;
+    wire bypass_miso_B1;
+    wire bypass_miso_B2;
+    wire bypass_miso_C1;
+    wire bypass_miso_C2;
+    wire bypass_miso_D1;
+    wire bypass_miso_D2;
+    
     // Moved up from input deserializer
 	wire [15:0] TTL_in, TTL_parallel;
 	wire serial_CLK_auto, serial_LOAD_auto;
@@ -408,9 +431,18 @@ module main
 	assign DAC_noise_suppress = 		ep00wirein[12:6];
 	assign DAC_gain = 					ep00wirein[15:13];
 	assign pipeout_override_en =        ep00wirein[16];
+	
+	// Bypass controller inputs
+	assign bypass_enable = 				ep00wirein[17];
+	assign bypass_command_valid = 		ep00wirein[18];
+	assign bypass_auto_cs = 			ep00wirein[19];
 
 	assign max_timestep_in[15:0] = 	ep01wirein[15:0];
 	assign max_timestep_in[31:16] =	ep02wirein[15:0];
+	
+	// Bypass controller inputs (using unused bits)
+	assign bypass_command_data[15:0] = ep03wirein[15:0];
+	assign bypass_command_data[31:16] = ep04wirein[15:0];
 
 	always @(posedge dataclk) begin
 		max_timestep <= max_timestep_in;
@@ -628,8 +660,8 @@ module main
 	
 	assign ep21wireout = 				num_words_in_FIFO[31:16];
 	
-	assign ep22wireout = 				{ 15'b0, SPI_running };
-		
+	// Output bypass response data when valid, otherwise output SPI_running status
+	assign ep22wireout = 				bypass_response_valid ? bypass_response_data[31:0] : { 15'b0, SPI_running };
 	assign ep23wireout = 				TTL_in;
 	
 	assign ep24wireout = 				{ 14'b0, MMCM_prog_done, dataclk_locked };
@@ -3895,6 +3927,57 @@ module main
 	okPipeIn     pi85 (.okHE(okHE), .okEH(okEHx[ 37*65 +: 65 ]), .ep_addr(8'h85), .ep_write(pipe_in_write_3_LSW), .ep_dataout(pipe_in_data_3_LSW));
 	okPipeIn     pi86 (.okHE(okHE), .okEH(okEHx[ 38*65 +: 65 ]), .ep_addr(8'h86), .ep_write(pipe_in_write_4_MSW), .ep_dataout(pipe_in_data_4_MSW));
 	okPipeIn     pi87 (.okHE(okHE), .okEH(okEHx[ 39*65 +: 65 ]), .ep_addr(8'h87), .ep_write(pipe_in_write_4_LSW), .ep_dataout(pipe_in_data_4_LSW));
+
+    // Enhanced bypass controller instance - 替换为带有电极分组功能的增强型控制器
+    enhanced_bypass_controller #(
+        .DATA_WIDTH(16),        // 数据宽度 16位
+        .CHANNELS(8),           // 8个RHS数据通道  
+        .CMD_WIDTH(32),         // 命令宽度 32位
+        .GROUPS(10),            // 10个电极分组
+        .ELECTRODES_PER_GROUP(8) // 每组8个电极
+    ) enhanced_bypass_ctrl (
+        // 系统时钟和复位信号
+        .clk(dataclk),                              // 使用数据时钟
+        .reset(reset),                              // 系统复位信号
+        
+        // 控制接口
+        .bypass_enable(bypass_enable),              // 旁路功能使能
+        .command_data(bypass_command_data),         // 命令数据
+        .command_valid(bypass_command_valid),       // 命令有效信号
+        .spi_mode(2'b00),                          // SPI模式0 - 基础模式
+        .auto_cs_n(~bypass_auto_cs),               // 自动片选控制
+        .manual_cs_n(1'b1),                        // 手动片选控制（未使用）
+        .game_mode(2'b00),                         // 默认游戏模式：闭环反馈
+        
+        // RHS数据输入接口 - 连接来自8个数据流的实际RHS数据
+        .rhs_data_in('{data_stream_1[15:0], data_stream_2[15:0], data_stream_3[15:0], data_stream_4[15:0], 
+                       data_stream_5[15:0], data_stream_6[15:0], data_stream_7[15:0], data_stream_8[15:0]}),  // 实时RHS数据输入
+        .rhs_data_valid(1'b1),                      // 启用RHS数据输入，使用主数据有效信号
+        
+        // 游戏模块接口（简化实现，后续可扩展完整游戏功能）
+        .game_start_valid(1'b0),                    // 游戏开始有效（未启用）
+        .game_start_ready(),                        // 游戏开始就绪
+        .game_end_valid(1'b0),                      // 游戏结束有效（未启用）
+        .game_end_ready(),                          // 游戏结束就绪  
+        .paddle_control(2'b00),                     // 桨控制（未启用）
+        .result_en(),                               // 结果使能输出
+        .game_result(),                             // 游戏结果输出
+        .ball_x(),                                  // 球X坐标输出
+        .ball_y(),                                  // 球Y坐标输出
+        .win_counter(),                             // 获胜计数器输出
+        .lose_counter(),                            // 失败计数器输出
+        
+        // 状态反馈接口
+        .response_data(bypass_response_data),       // 响应数据输出
+        .response_valid(bypass_response_valid),     // 响应数据有效
+        .busy(bypass_busy),                         // 模块忙碌状态
+        
+        // SPI接口
+        .cs_n(bypass_cs_n),                         // 片选信号输出
+        .sclk(bypass_sclk),                         // SPI时钟输出
+        .mosi(bypass_mosi),                         // 主出从入数据
+        .miso(bypass_miso_A1)                       // 主入从出数据
+    );
 
 	wire pipeout_rdy;
     assign pipeout_rdy = (FIFO_out_rdy | pipeout_override_en);
