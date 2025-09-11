@@ -858,6 +858,18 @@ module main
 
 	wire [15:0] stim_on_A1, stim_on_A2, stim_on_B1, stim_on_B2, stim_on_C1, stim_on_C2, stim_on_D1, stim_on_D2;
 	wire [15:0] stim_pol_A1, stim_pol_A2, stim_pol_B1, stim_pol_B2, stim_pol_C1, stim_pol_C2, stim_pol_D1, stim_pol_D2;
+	wire [15:0] stim_amp_settle_A1, stim_amp_settle_A2, stim_amp_settle_B1, stim_amp_settle_B2, stim_amp_settle_C1, stim_amp_settle_C2, stim_amp_settle_D1, stim_amp_settle_D2;
+	wire [15:0] stim_charge_recov_A1, stim_charge_recov_A2, stim_charge_recov_B1, stim_charge_recov_B2, stim_charge_recov_C1, stim_charge_recov_C2, stim_charge_recov_D1, stim_charge_recov_D2;
+	
+	// Multiplexed signals for bypass control - select between bypass controller and original signals
+	wire [15:0] stim_on_A1_final, stim_pol_A1_final, stim_amp_settle_A1_final, stim_charge_recov_A1_final;
+	wire [15:0] stim_on_A2_final, stim_pol_A2_final, stim_amp_settle_A2_final, stim_charge_recov_A2_final;
+	wire [15:0] stim_on_B1_final, stim_pol_B1_final, stim_amp_settle_B1_final, stim_charge_recov_B1_final;
+	wire [15:0] stim_on_B2_final, stim_pol_B2_final, stim_amp_settle_B2_final, stim_charge_recov_B2_final;
+	wire [15:0] stim_on_C1_final, stim_pol_C1_final, stim_amp_settle_C1_final, stim_charge_recov_C1_final;
+	wire [15:0] stim_on_C2_final, stim_pol_C2_final, stim_amp_settle_C2_final, stim_charge_recov_C2_final;
+	wire [15:0] stim_on_D1_final, stim_pol_D1_final, stim_amp_settle_D1_final, stim_charge_recov_D1_final;
+	wire [15:0] stim_on_D2_final, stim_pol_D2_final, stim_amp_settle_D2_final, stim_charge_recov_D2_final;
 	wire [15:0] charge_recov_A1, charge_recov_A2, charge_recov_B1, charge_recov_B2, charge_recov_C1, charge_recov_C2, charge_recov_D1, charge_recov_D2;
 	wire [15:0] amp_settle_A1, amp_settle_A2, amp_settle_B1, amp_settle_B2, amp_settle_C1, amp_settle_C2, amp_settle_D1, amp_settle_D2;
 	wire [15:0] amp_settle_A1_pre, amp_settle_A2_pre, amp_settle_B1_pre, amp_settle_B2_pre, amp_settle_C1_pre, amp_settle_C2_pre, amp_settle_D1_pre, amp_settle_D2_pre;
@@ -885,53 +897,94 @@ module main
 	assign amp_settle_changed_D1 = settle_all_headstages ? any_amp_settle_changed : (settle_whole_headstage_D ? any_amp_settle_changed_D : amp_settle_changed_D1_pre);
 	assign amp_settle_changed_D2 = settle_all_headstages ? any_amp_settle_changed : (settle_whole_headstage_D ? any_amp_settle_changed_D : amp_settle_changed_D2_pre);
 	
+	// Multiplexing logic for bypass control - select between bypass controller and original signals
+	assign stim_on_A1_final = bypass_enable ? bypass_stim_on_A1 : stim_on_A1;
+	assign stim_pol_A1_final = bypass_enable ? bypass_stim_pol_A1 : stim_pol_A1;
+	assign stim_amp_settle_A1_final = bypass_enable ? bypass_stim_amp_settle_A1 : stim_amp_settle_A1;
+	assign stim_charge_recov_A1_final = bypass_enable ? bypass_stim_charge_recov_A1 : stim_charge_recov_A1;
+	
+	assign stim_on_A2_final = bypass_enable ? bypass_stim_on_A2 : stim_on_A2;
+	assign stim_pol_A2_final = bypass_enable ? bypass_stim_pol_A2 : stim_pol_A2;
+	assign stim_amp_settle_A2_final = bypass_enable ? bypass_stim_amp_settle_A2 : stim_amp_settle_A2;
+	assign stim_charge_recov_A2_final = bypass_enable ? bypass_stim_charge_recov_A2 : stim_charge_recov_A2;
+	
+	assign stim_on_B1_final = bypass_enable ? bypass_stim_on_B1 : stim_on_B1;
+	assign stim_pol_B1_final = bypass_enable ? bypass_stim_pol_B1 : stim_pol_B1;
+	assign stim_amp_settle_B1_final = bypass_enable ? bypass_stim_amp_settle_B1 : stim_amp_settle_B1;
+	assign stim_charge_recov_B1_final = bypass_enable ? bypass_stim_charge_recov_B1 : stim_charge_recov_B1;
+	
+	assign stim_on_B2_final = bypass_enable ? bypass_stim_on_B2 : stim_on_B2;
+	assign stim_pol_B2_final = bypass_enable ? bypass_stim_pol_B2 : stim_pol_B2;
+	assign stim_amp_settle_B2_final = bypass_enable ? bypass_stim_amp_settle_B2 : stim_amp_settle_B2;
+	assign stim_charge_recov_B2_final = bypass_enable ? bypass_stim_charge_recov_B2 : stim_charge_recov_B2;
+	
+	assign stim_on_C1_final = bypass_enable ? bypass_stim_on_C1 : stim_on_C1;
+	assign stim_pol_C1_final = bypass_enable ? bypass_stim_pol_C1 : stim_pol_C1;
+	assign stim_amp_settle_C1_final = bypass_enable ? bypass_stim_amp_settle_C1 : stim_amp_settle_C1;
+	assign stim_charge_recov_C1_final = bypass_enable ? bypass_stim_charge_recov_C1 : stim_charge_recov_C1;
+	
+	assign stim_on_C2_final = bypass_enable ? bypass_stim_on_C2 : stim_on_C2;
+	assign stim_pol_C2_final = bypass_enable ? bypass_stim_pol_C2 : stim_pol_C2;
+	assign stim_amp_settle_C2_final = bypass_enable ? bypass_stim_amp_settle_C2 : stim_amp_settle_C2;
+	assign stim_charge_recov_C2_final = bypass_enable ? bypass_stim_charge_recov_C2 : stim_charge_recov_C2;
+	
+	assign stim_on_D1_final = bypass_enable ? bypass_stim_on_D1 : stim_on_D1;
+	assign stim_pol_D1_final = bypass_enable ? bypass_stim_pol_D1 : stim_pol_D1;
+	assign stim_amp_settle_D1_final = bypass_enable ? bypass_stim_amp_settle_D1 : stim_amp_settle_D1;
+	assign stim_charge_recov_D1_final = bypass_enable ? bypass_stim_charge_recov_D1 : stim_charge_recov_D1;
+	
+	assign stim_on_D2_final = bypass_enable ? bypass_stim_on_D2 : stim_on_D2;
+	assign stim_pol_D2_final = bypass_enable ? bypass_stim_pol_D2 : stim_pol_D2;
+	assign stim_amp_settle_D2_final = bypass_enable ? bypass_stim_amp_settle_D2 : stim_amp_settle_D2;
+	assign stim_charge_recov_D2_final = bypass_enable ? bypass_stim_charge_recov_D2 : stim_charge_recov_D2;
+	
 	
 	command_selector_stim command_selector_stim_A1 (
 		.channel(channel), .shutdown(shutdown), .DSP_settle(DSP_settle), .amp_settle_mode(amp_settle_mode), .charge_recov_mode(charge_recov_mode),
 		.aux_cmd(aux_cmd), .use_aux_cmd(aux_enable_A1), .DC_amp_convert(DC_amp_convert), .stim_en(stim_cmd_en),
-		.stim_on(stim_on_A1), .stim_pol(stim_pol_A1), .charge_recov(charge_recov_A1), .amp_settle(amp_settle_A1),
+		.stim_on(stim_on_A1_final), .stim_pol(stim_pol_A1_final), .charge_recov(stim_charge_recov_A1_final), .amp_settle(stim_amp_settle_A1_final),
 		.amp_settle_changed(amp_settle_changed_A1), .MOSI_cmd(MOSI_cmd_selected_A1));	
 	
 	command_selector_stim command_selector_stim_A2 (
 		.channel(channel), .shutdown(shutdown), .DSP_settle(DSP_settle), .amp_settle_mode(amp_settle_mode), .charge_recov_mode(charge_recov_mode),
 		.aux_cmd(aux_cmd), .use_aux_cmd(aux_enable_A2), .DC_amp_convert(DC_amp_convert), .stim_en(stim_cmd_en),
-		.stim_on(stim_on_A2), .stim_pol(stim_pol_A2), .charge_recov(charge_recov_A2), .amp_settle(amp_settle_A2),
+		.stim_on(stim_on_A2_final), .stim_pol(stim_pol_A2_final), .charge_recov(stim_charge_recov_A2_final), .amp_settle(stim_amp_settle_A2_final),
 		.amp_settle_changed(amp_settle_changed_A2), .MOSI_cmd(MOSI_cmd_selected_A2));	
 
 	command_selector_stim command_selector_stim_B1 (
 		.channel(channel), .shutdown(shutdown), .DSP_settle(DSP_settle), .amp_settle_mode(amp_settle_mode), .charge_recov_mode(charge_recov_mode),
 		.aux_cmd(aux_cmd), .use_aux_cmd(aux_enable_B1), .DC_amp_convert(DC_amp_convert), .stim_en(stim_cmd_en),
-		.stim_on(stim_on_B1), .stim_pol(stim_pol_B1), .charge_recov(charge_recov_B1), .amp_settle(amp_settle_B1),
+		.stim_on(stim_on_B1_final), .stim_pol(stim_pol_B1_final), .charge_recov(stim_charge_recov_B1_final), .amp_settle(stim_amp_settle_B1_final),
 		.amp_settle_changed(amp_settle_changed_B1), .MOSI_cmd(MOSI_cmd_selected_B1));	
 	
 	command_selector_stim command_selector_stim_B2 (
 		.channel(channel), .shutdown(shutdown), .DSP_settle(DSP_settle), .amp_settle_mode(amp_settle_mode), .charge_recov_mode(charge_recov_mode),
 		.aux_cmd(aux_cmd), .use_aux_cmd(aux_enable_B2), .DC_amp_convert(DC_amp_convert), .stim_en(stim_cmd_en),
-		.stim_on(stim_on_B2), .stim_pol(stim_pol_B2), .charge_recov(charge_recov_B2), .amp_settle(amp_settle_B2),
+		.stim_on(stim_on_B2_final), .stim_pol(stim_pol_B2_final), .charge_recov(stim_charge_recov_B2_final), .amp_settle(stim_amp_settle_B2_final),
 		.amp_settle_changed(amp_settle_changed_B2), .MOSI_cmd(MOSI_cmd_selected_B2));	
 
 	command_selector_stim command_selector_stim_C1 (
 		.channel(channel), .shutdown(shutdown), .DSP_settle(DSP_settle), .amp_settle_mode(amp_settle_mode), .charge_recov_mode(charge_recov_mode),
 		.aux_cmd(aux_cmd), .use_aux_cmd(aux_enable_C1), .DC_amp_convert(DC_amp_convert), .stim_en(stim_cmd_en),
-		.stim_on(stim_on_C1), .stim_pol(stim_pol_C1), .charge_recov(charge_recov_C1), .amp_settle(amp_settle_C1),
+		.stim_on(stim_on_C1_final), .stim_pol(stim_pol_C1_final), .charge_recov(stim_charge_recov_C1_final), .amp_settle(stim_amp_settle_C1_final),
 		.amp_settle_changed(amp_settle_changed_C1), .MOSI_cmd(MOSI_cmd_selected_C1));	
 	
 	command_selector_stim command_selector_stim_C2 (
 		.channel(channel), .shutdown(shutdown), .DSP_settle(DSP_settle), .amp_settle_mode(amp_settle_mode), .charge_recov_mode(charge_recov_mode),
 		.aux_cmd(aux_cmd), .use_aux_cmd(aux_enable_C2), .DC_amp_convert(DC_amp_convert), .stim_en(stim_cmd_en),
-		.stim_on(stim_on_C2), .stim_pol(stim_pol_C2), .charge_recov(charge_recov_C2), .amp_settle(amp_settle_C2),
+		.stim_on(stim_on_C2_final), .stim_pol(stim_pol_C2_final), .charge_recov(stim_charge_recov_C2_final), .amp_settle(stim_amp_settle_C2_final),
 		.amp_settle_changed(amp_settle_changed_C2), .MOSI_cmd(MOSI_cmd_selected_C2));	
 
 	command_selector_stim command_selector_stim_D1 (
 		.channel(channel), .shutdown(shutdown), .DSP_settle(DSP_settle), .amp_settle_mode(amp_settle_mode), .charge_recov_mode(charge_recov_mode),
 		.aux_cmd(aux_cmd), .use_aux_cmd(aux_enable_D1), .DC_amp_convert(DC_amp_convert), .stim_en(stim_cmd_en),
-		.stim_on(stim_on_D1), .stim_pol(stim_pol_D1), .charge_recov(charge_recov_D1), .amp_settle(amp_settle_D1),
+		.stim_on(stim_on_D1_final), .stim_pol(stim_pol_D1_final), .charge_recov(stim_charge_recov_D1_final), .amp_settle(stim_amp_settle_D1_final),
 		.amp_settle_changed(amp_settle_changed_D1), .MOSI_cmd(MOSI_cmd_selected_D1));	
 	
 	command_selector_stim command_selector_stim_D2 (
 		.channel(channel), .shutdown(shutdown), .DSP_settle(DSP_settle), .amp_settle_mode(amp_settle_mode), .charge_recov_mode(charge_recov_mode),
 		.aux_cmd(aux_cmd), .use_aux_cmd(aux_enable_D2), .DC_amp_convert(DC_amp_convert), .stim_en(stim_cmd_en),
-		.stim_on(stim_on_D2), .stim_pol(stim_pol_D2), .charge_recov(charge_recov_D2), .amp_settle(amp_settle_D2),
+		.stim_on(stim_on_D2_final), .stim_pol(stim_pol_D2_final), .charge_recov(stim_charge_recov_D2_final), .amp_settle(stim_amp_settle_D2_final),
 		.amp_settle_changed(amp_settle_changed_D2), .MOSI_cmd(MOSI_cmd_selected_D2));	
 		
 	assign header_magic_number = 64'h8d542c8a49712f0b;  // Fixed 64-bit "magic number" that begins each data frame
@@ -3268,42 +3321,42 @@ module main
 	
 	stim_sequencer #(0) stim_sequencer_A1 (.reset(reset), .dataclk(dataclk), .main_state(main_state), .channel(channel),
 		.prog_channel(prog_channel), .prog_address(prog_address), .prog_module(prog_module), .prog_word(prog_word), .prog_trig(prog_trig),
-		.triggers(triggers), .stim_on(stim_on_A1), .stim_pol(stim_pol_A1), .amp_settle(amp_settle_A1_pre), .charge_recov(charge_recov_A1),
+		.triggers(triggers), .stim_on(stim_on_A1_final), .stim_pol(stim_pol_A1_final), .amp_settle(stim_amp_settle_A1_final), .charge_recov(stim_charge_recov_A1_final),
 		.amp_settle_changed(amp_settle_changed_A1_pre), .reset_sequencer(reset_sequencers));
 
 	stim_sequencer #(1) stim_sequencer_A2 (.reset(reset), .dataclk(dataclk), .main_state(main_state), .channel(channel),
 		.prog_channel(prog_channel), .prog_address(prog_address), .prog_module(prog_module), .prog_word(prog_word), .prog_trig(prog_trig),
-		.triggers(triggers), .stim_on(stim_on_A2), .stim_pol(stim_pol_A2), .amp_settle(amp_settle_A2_pre), .charge_recov(charge_recov_A2),
+		.triggers(triggers), .stim_on(stim_on_A2_final), .stim_pol(stim_pol_A2_final), .amp_settle(stim_amp_settle_A2_final), .charge_recov(stim_charge_recov_A2_final),
 		.amp_settle_changed(amp_settle_changed_A2_pre), .reset_sequencer(reset_sequencers));
 		
 	stim_sequencer #(2) stim_sequencer_B1 (.reset(reset), .dataclk(dataclk), .main_state(main_state), .channel(channel),
 		.prog_channel(prog_channel), .prog_address(prog_address), .prog_module(prog_module), .prog_word(prog_word), .prog_trig(prog_trig),
-		.triggers(triggers), .stim_on(stim_on_B1), .stim_pol(stim_pol_B1), .amp_settle(amp_settle_B1_pre), .charge_recov(charge_recov_B1),
+		.triggers(triggers), .stim_on(stim_on_B1_final), .stim_pol(stim_pol_B1_final), .amp_settle(stim_amp_settle_B1_final), .charge_recov(stim_charge_recov_B1_final),
 		.amp_settle_changed(amp_settle_changed_B1_pre), .reset_sequencer(reset_sequencers));
 		
 	stim_sequencer #(3) stim_sequencer_B2 (.reset(reset), .dataclk(dataclk), .main_state(main_state), .channel(channel),
 		.prog_channel(prog_channel), .prog_address(prog_address), .prog_module(prog_module), .prog_word(prog_word), .prog_trig(prog_trig),
-		.triggers(triggers), .stim_on(stim_on_B2), .stim_pol(stim_pol_B2), .amp_settle(amp_settle_B2_pre), .charge_recov(charge_recov_B2),
+		.triggers(triggers), .stim_on(stim_on_B2_final), .stim_pol(stim_pol_B2_final), .amp_settle(stim_amp_settle_B2_final), .charge_recov(stim_charge_recov_B2_final),
 		.amp_settle_changed(amp_settle_changed_B2_pre), .reset_sequencer(reset_sequencers));
 		
 	stim_sequencer #(4) stim_sequencer_C1 (.reset(reset), .dataclk(dataclk), .main_state(main_state), .channel(channel),
 		.prog_channel(prog_channel), .prog_address(prog_address), .prog_module(prog_module), .prog_word(prog_word), .prog_trig(prog_trig),
-		.triggers(triggers), .stim_on(stim_on_C1), .stim_pol(stim_pol_C1), .amp_settle(amp_settle_C1_pre), .charge_recov(charge_recov_C1),
+		.triggers(triggers), .stim_on(stim_on_C1_final), .stim_pol(stim_pol_C1_final), .amp_settle(stim_amp_settle_C1_final), .charge_recov(stim_charge_recov_C1_final),
 		.amp_settle_changed(amp_settle_changed_C1_pre), .reset_sequencer(reset_sequencers));
 		
 	stim_sequencer #(5) stim_sequencer_C2 (.reset(reset), .dataclk(dataclk), .main_state(main_state), .channel(channel),
 		.prog_channel(prog_channel), .prog_address(prog_address), .prog_module(prog_module), .prog_word(prog_word), .prog_trig(prog_trig),
-		.triggers(triggers), .stim_on(stim_on_C2), .stim_pol(stim_pol_C2), .amp_settle(amp_settle_C2_pre), .charge_recov(charge_recov_C2),
+		.triggers(triggers), .stim_on(stim_on_C2_final), .stim_pol(stim_pol_C2_final), .amp_settle(stim_amp_settle_C2_final), .charge_recov(stim_charge_recov_C2_final),
 		.amp_settle_changed(amp_settle_changed_C2_pre), .reset_sequencer(reset_sequencers));
 		
 	stim_sequencer #(6) stim_sequencer_D1 (.reset(reset), .dataclk(dataclk), .main_state(main_state), .channel(channel),
 		.prog_channel(prog_channel), .prog_address(prog_address), .prog_module(prog_module), .prog_word(prog_word), .prog_trig(prog_trig),
-		.triggers(triggers), .stim_on(stim_on_D1), .stim_pol(stim_pol_D1), .amp_settle(amp_settle_D1_pre), .charge_recov(charge_recov_D1),
+		.triggers(triggers), .stim_on(stim_on_D1_final), .stim_pol(stim_pol_D1_final), .amp_settle(stim_amp_settle_D1_final), .charge_recov(stim_charge_recov_D1_final),
 		.amp_settle_changed(amp_settle_changed_D1_pre), .reset_sequencer(reset_sequencers));
 		
 	stim_sequencer #(7) stim_sequencer_D2 (.reset(reset), .dataclk(dataclk), .main_state(main_state), .channel(channel),
 		.prog_channel(prog_channel), .prog_address(prog_address), .prog_module(prog_module), .prog_word(prog_word), .prog_trig(prog_trig),
-		.triggers(triggers), .stim_on(stim_on_D2), .stim_pol(stim_pol_D2), .amp_settle(amp_settle_D2_pre), .charge_recov(charge_recov_D2),
+		.triggers(triggers), .stim_on(stim_on_D2_final), .stim_pol(stim_pol_D2_final), .amp_settle(stim_amp_settle_D2_final), .charge_recov(stim_charge_recov_D2_final),
 		.amp_settle_changed(amp_settle_changed_D2_pre), .reset_sequencer(reset_sequencers));
 		
 	wire [15:0] DAC_sequencer_1, DAC_sequencer_2, DAC_sequencer_3, DAC_sequencer_4;
@@ -3972,14 +4025,63 @@ module main
         .response_valid(bypass_response_valid),     // 响应数据有效
         .busy(bypass_busy),                         // 模块忙碌状态
         
-        // SPI接口
-        .cs_n(bypass_cs_n),                         // 片选信号输出
-        .sclk(bypass_sclk),                         // SPI时钟输出
-        .mosi(bypass_mosi),                         // 主出从入数据
-        .miso(bypass_miso_A1)                       // 主入从出数据
+        // 刺激序列器控制接口
+        .stim_cmd_valid(bypass_stim_cmd_valid),     // 刺激命令有效信号
+        .stim_channel(bypass_stim_channel),         // 刺激通道选择
+        .stim_shutdown(bypass_stim_shutdown),       // 安全关闭信号
+        // Individual channel control signals
+        .stim_on_A1(bypass_stim_on_A1),             // A1通道刺激开启控制
+        .stim_pol_A1(bypass_stim_pol_A1),           // A1通道刺激极性控制
+        .stim_amp_settle_A1(bypass_stim_amp_settle_A1), // A1通道放大器稳定控制
+        .stim_charge_recov_A1(bypass_stim_charge_recov_A1), // A1通道电荷恢复控制
+        .stim_on_A2(bypass_stim_on_A2),             // A2通道刺激开启控制
+        .stim_pol_A2(bypass_stim_pol_A2),           // A2通道刺激极性控制
+        .stim_amp_settle_A2(bypass_stim_amp_settle_A2), // A2通道放大器稳定控制
+        .stim_charge_recov_A2(bypass_stim_charge_recov_A2), // A2通道电荷恢复控制
+        .stim_on_B1(bypass_stim_on_B1),             // B1通道刺激开启控制
+        .stim_pol_B1(bypass_stim_pol_B1),           // B1通道刺激极性控制
+        .stim_amp_settle_B1(bypass_stim_amp_settle_B1), // B1通道放大器稳定控制
+        .stim_charge_recov_B1(bypass_stim_charge_recov_B1), // B1通道电荷恢复控制
+        .stim_on_B2(bypass_stim_on_B2),             // B2通道刺激开启控制
+        .stim_pol_B2(bypass_stim_pol_B2),           // B2通道刺激极性控制
+        .stim_amp_settle_B2(bypass_stim_amp_settle_B2), // B2通道放大器稳定控制
+        .stim_charge_recov_B2(bypass_stim_charge_recov_B2), // B2通道电荷恢复控制
+        .stim_on_C1(bypass_stim_on_C1),             // C1通道刺激开启控制
+        .stim_pol_C1(bypass_stim_pol_C1),           // C1通道刺激极性控制
+        .stim_amp_settle_C1(bypass_stim_amp_settle_C1), // C1通道放大器稳定控制
+        .stim_charge_recov_C1(bypass_stim_charge_recov_C1), // C1通道电荷恢复控制
+        .stim_on_C2(bypass_stim_on_C2),             // C2通道刺激开启控制
+        .stim_pol_C2(bypass_stim_pol_C2),           // C2通道刺激极性控制
+        .stim_amp_settle_C2(bypass_stim_amp_settle_C2), // C2通道放大器稳定控制
+        .stim_charge_recov_C2(bypass_stim_charge_recov_C2), // C2通道电荷恢复控制
+        .stim_on_D1(bypass_stim_on_D1),             // D1通道刺激开启控制
+        .stim_pol_D1(bypass_stim_pol_D1),           // D1通道刺激极性控制
+        .stim_amp_settle_D1(bypass_stim_amp_settle_D1), // D1通道放大器稳定控制
+        .stim_charge_recov_D1(bypass_stim_charge_recov_D1), // D1通道电荷恢复控制
+        .stim_on_D2(bypass_stim_on_D2),             // D2通道刺激开启控制
+        .stim_pol_D2(bypass_stim_pol_D2),           // D2通道刺激极性控制
+        .stim_amp_settle_D2(bypass_stim_amp_settle_D2), // D2通道放大器稳定控制
+        .stim_charge_recov_D2(bypass_stim_charge_recov_D2), // D2通道电荷恢复控制
+        .stim_amp_settle_changed(bypass_stim_amp_settle_changed), // 放大器稳定控制改变信号
+        .stim_cmd_ready(1'b1)                       // 刺激命令就绪信号（简化实现）
     );
 
-	wire pipeout_rdy;
+	// Enhanced bypass controller interface signals
+wire bypass_stim_cmd_valid;
+wire [5:0] bypass_stim_channel;
+wire bypass_stim_shutdown;
+// Individual channel control signals from bypass controller
+wire [15:0] bypass_stim_on_A1, bypass_stim_pol_A1, bypass_stim_amp_settle_A1, bypass_stim_charge_recov_A1;
+wire [15:0] bypass_stim_on_A2, bypass_stim_pol_A2, bypass_stim_amp_settle_A2, bypass_stim_charge_recov_A2;
+wire [15:0] bypass_stim_on_B1, bypass_stim_pol_B1, bypass_stim_amp_settle_B1, bypass_stim_charge_recov_B1;
+wire [15:0] bypass_stim_on_B2, bypass_stim_pol_B2, bypass_stim_amp_settle_B2, bypass_stim_charge_recov_B2;
+wire [15:0] bypass_stim_on_C1, bypass_stim_pol_C1, bypass_stim_amp_settle_C1, bypass_stim_charge_recov_C1;
+wire [15:0] bypass_stim_on_C2, bypass_stim_pol_C2, bypass_stim_amp_settle_C2, bypass_stim_charge_recov_C2;
+wire [15:0] bypass_stim_on_D1, bypass_stim_pol_D1, bypass_stim_amp_settle_D1, bypass_stim_charge_recov_D1;
+wire [15:0] bypass_stim_on_D2, bypass_stim_pol_D2, bypass_stim_amp_settle_D2, bypass_stim_charge_recov_D2;
+wire bypass_stim_amp_settle_changed;
+
+wire pipeout_rdy;
     assign pipeout_rdy = (FIFO_out_rdy | pipeout_override_en);
 
 	// Flip the 16-bit words in the fifo for compatibility with the USB2 read methods
