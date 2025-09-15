@@ -518,7 +518,10 @@ module main
    assign data_stream_7_en_in = 		ep14wirein[6];
    assign data_stream_8_en_in = 		ep14wirein[7];
 
-	// ep15 currently unused
+	// 游戏控制信号 - 使用ep15 wirein
+assign game_start_valid = ep15wirein[0];        // 游戏开始触发信号
+assign game_end_valid = ep15wirein[1];          // 游戏结束触发信号
+assign paddle_control = ep15wirein[3:2];        // 桨控制信号 [1]向上, [0]向下
 	
 	assign DAC_channel_sel_1 = 		ep16wirein[4:0];
 	assign DAC_stream_sel_1 = 			ep16wirein[8:5];
@@ -4007,18 +4010,18 @@ module main
                        data_stream_5[15:0], data_stream_6[15:0], data_stream_7[15:0], data_stream_8[15:0]}),  // 实时RHS数据输入
         .rhs_data_valid(1'b1),                      // 启用RHS数据输入，使用主数据有效信号
         
-        // 游戏模块接口（简化实现，后续可扩展完整游戏功能）
-        .game_start_valid(1'b0),                    // 游戏开始有效（未启用）
-        .game_start_ready(),                        // 游戏开始就绪
-        .game_end_valid(1'b0),                      // 游戏结束有效（未启用）
-        .game_end_ready(),                          // 游戏结束就绪  
-        .paddle_control(2'b00),                     // 桨控制（未启用）
-        .result_en(),                               // 结果使能输出
-        .game_result(),                             // 游戏结果输出
-        .ball_x(),                                  // 球X坐标输出
-        .ball_y(),                                  // 球Y坐标输出
-        .win_counter(),                             // 获胜计数器输出
-        .lose_counter(),                            // 失败计数器输出
+        // 游戏模块接口
+        .game_start_valid(game_start_valid),        // 游戏开始有效信号
+        .game_start_ready(game_start_ready),        // 游戏开始就绪信号
+        .game_end_valid(game_end_valid),            // 游戏结束有效信号
+        .game_end_ready(game_end_ready),            // 游戏结束就绪信号
+        .paddle_control(paddle_control),            // 桨控制信号
+        .result_en(result_en),                      // 结果使能输出
+        .game_result(game_result),                  // 游戏结果输出
+        .ball_x(ball_x),                            // 球X坐标输出
+        .ball_y(ball_y),                            // 球Y坐标输出
+        .win_counter(win_counter),                  // 获胜计数器输出
+        .lose_counter(lose_counter),                // 失败计数器输出
         
         // 状态反馈接口
         .response_data(bypass_response_data),       // 响应数据输出
@@ -4080,6 +4083,19 @@ wire [15:0] bypass_stim_on_C2, bypass_stim_pol_C2, bypass_stim_amp_settle_C2, by
 wire [15:0] bypass_stim_on_D1, bypass_stim_pol_D1, bypass_stim_amp_settle_D1, bypass_stim_charge_recov_D1;
 wire [15:0] bypass_stim_on_D2, bypass_stim_pol_D2, bypass_stim_amp_settle_D2, bypass_stim_charge_recov_D2;
 wire bypass_stim_amp_settle_changed;
+
+// Game module interface signals
+wire game_start_valid;
+wire game_start_ready;
+wire game_end_valid;
+wire game_end_ready;
+wire [1:0] paddle_control;
+wire result_en;
+wire game_result;
+wire [7:0] ball_x;
+wire [7:0] ball_y;
+wire [7:0] win_counter;
+wire [7:0] lose_counter;
 
 wire pipeout_rdy;
     assign pipeout_rdy = (FIFO_out_rdy | pipeout_override_en);

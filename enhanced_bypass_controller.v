@@ -333,16 +333,35 @@ data_output_module #(
 );
 
 // -------------------------------------------------------------------------
-// 游戏模块接口连接（简化实现）
-// 当前版本为简化实现，后续可扩展完整的游戏逻辑
+// 游戏模块实例化
 // -------------------------------------------------------------------------
 
-assign game_start_ready = 1'b1;      // 游戏开始准备就绪信号（始终准备就绪）
-assign game_end_ready = 1'b1;       // 游戏结束准备就绪信号（始终准备就绪）
-assign result_en = 1'b0;            // 结果使能信号（当前版本未启用）
-assign game_result = 1'b0;          // 游戏结果信号（当前版本固定为0）
-assign ball_x = 8'h00;              // 游戏球X坐标（当前版本固定为0）
-assign ball_y = 8'h00;              // 游戏球Y坐标（当前版本固定为0）
+Game #(
+    .board_width(40),
+    .board_height(16),
+    .ball_velocity_x(1),
+    .ball_velocity_y(1),
+    .paddle_length(2),
+    .paddle_velocity(1)
+) game_inst (
+    .reset(reset),
+    .clk(clk),
+    
+    .game_start_valid(game_start_valid),
+    .game_start_ready(game_start_ready),
+    .game_end_valid(game_end_valid),
+    .game_end_ready(game_end_ready),
+    
+    .paddle_control(paddle_control),
+    .result_en(result_en),
+    .game_result(game_result),
+    
+    .ball_x(ball_x),
+    .ball_y(ball_y),
+    
+    .win_counter(win_counter),
+    .lose_counter(lose_counter)
+);
 
 // -------------------------------------------------------------------------
 // 命令寄存器 - 存储待发送的命令
