@@ -27,23 +27,11 @@ module filter_processing_module #(
     input wire data_valid,                                 // 数据有效信号
     
     // -------------------------------------------------------------------------
-    // 电极分组控制接口
-    // 用于配置电极分组和功能，决定哪些电极需要进行滤波处理
+    // A1和A2通道电极使能控制
+    // 用于控制每个通道中16个电极的使能状态
     // -------------------------------------------------------------------------
-    // 电极分组映射表
-    // group_map[组号][电极号] = 实际电极编号
-    input wire [7:0] group_map [0:GROUPS-1][0:ELECTRODES_PER_GROUP-1],
-    
-    // 电极功能配置数组
-    // 每组电极的功能配置：
-    // 00: 收集电位信号
-    // 01: 发送刺激
-    // 10: 高阻态
-    // 11: 保留
-    input wire [1:0] electrode_function [0:GROUPS-1],
-    
-    // 当前操作的组号 (0-9)
-    input wire [3:0] current_group,
+    input wire [15:0] a1_electrode_enable,  // A1通道16个电极的使能控制
+    input wire [15:0] a2_electrode_enable,  // A2通道16个电极的使能控制
     
     // -------------------------------------------------------------------------
     // 控制接口
@@ -69,6 +57,10 @@ module filter_processing_module #(
     output reg [DATA_WIDTH-1:0] filtered_data [0:CHANNELS-1],  // 滤波后数据输出
     output reg data_out_valid,                                   // 数据输出有效信号
     output reg [DATA_WIDTH-1:0] spike_count [0:CHANNELS-1],     // 每个通道的尖峰计数
+    
+    // A1和A2通道尖峰数总和输出
+    output reg [DATA_WIDTH-1:0] a1_spike_sum,                   // A1通道16个电极的尖峰总数
+    output reg [DATA_WIDTH-1:0] a2_spike_sum,                   // A2通道16个电极的尖峰总数
     
     // -------------------------------------------------------------------------
     // 状态输出
@@ -106,23 +98,8 @@ always @(posedge clk or posedge reset) begin
         if (filter_enable && data_valid) begin
             // 执行滤波处理
             for (i = 0; i < CHANNELS; i = i + 1) begin
-                // 检查当前通道是否属于当前操作的组
-                // 如果属于当前组且功能为发送刺激，则跳过滤波处理
-                reg is_current_group_electrode;
-                integer g, e;
-                is_current_group_electrode = 1'b0;
-                
-                // 检查当前电极是否属于当前组
-                for (g = 0; g < GROUPS; g = g + 1) begin
-                    for (e = 0; e < ELECTRODES_PER_GROUP; e = e + 1) begin
-                        if (group_map[g][e] == i && g == current_group && electrode_function[g] == 2'b01) begin
-                            is_current_group_electrode = 1'b1;
-                        end
-                    end
-                end
-                
-                // 如果不是当前组的刺激电极，则进行滤波处理
-                if (!is_current_group_electrode) begin
+                // 每个电极单独处理，不需要跳过任何电极
+                begin
                     // 高通滤波: y[n] = x[n] - x[n-1]
                     hp_filtered_data[i] <= raw_data[i] - prev_data[i];
                     
@@ -141,11 +118,7 @@ always @(posedge clk or posedge reset) begin
                     if (filtered_data[i] > threshold) begin
                         spike_counter[i] <= spike_counter[i] + 1;
                     end
-                end else begin
-                    // 对于当前组的刺激电极，设置为默认值
-                    filtered_data[i] <= {DATA_WIDTH{1'b0}};
-                    // 不增加尖峰计数
-                end
+                // 不需要特殊处理，所有电极都进行滤波和尖峰检测
                 
                 // 保存当前数据用于下次计算
                 prev_data[i] <= raw_data[i];
@@ -158,6 +131,11 @@ always @(posedge clk or posedge reset) begin
             for (i = 0; i < CHANNELS; i = i + 1) begin
                 spike_count[i] <= spike_counter[i];
             end
+            
+            // 计算A1和A2通道的尖峰数总和
+            // 假设通道0和1分别对应A1和A2通道
+            a1_spike_sum <= spike_counter[0];  // A1通道尖峰数总和
+            a2_spike_sum <= spike_counter[1];  // A2通道尖峰数总和
         end else begin
             data_out_valid <= 1'b0;
             processing_done <= 1'b0;
